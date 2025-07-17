@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { assets } from '../assets/assets'
 import { MenuIcon, SearchIcon, TicketPlus, User, XIcon } from 'lucide-react'
 import { useClerk, UserButton, useUser } from '@clerk/clerk-react'
+import { useAppContext } from '../context/AppContext'
 
 const Navbar = () => {
 
@@ -11,6 +12,8 @@ const Navbar = () => {
     const {openSignIn} = useClerk();
 
     const navigate = useNavigate();
+
+    const { favoriteMovies } = useAppContext();
 
     
   return (
@@ -25,13 +28,13 @@ const Navbar = () => {
             <Link onClick={() => {scrollTo(0,0); setIsOpen(false)}} to='/movies'>Movies</Link>
             <Link onClick={() => {scrollTo(0,0); setIsOpen(false)}} to='/'>Theaters</Link>
             <Link onClick={() => {scrollTo(0,0); setIsOpen(false)}} to='/'>Releases</Link>
-            <Link onClick={() => {scrollTo(0,0); setIsOpen(false)}} to='/favourite'>Favourites</Link>
+            { favoriteMovies.length > 0 && <Link onClick={() => {scrollTo(0,0); setIsOpen(false)}} to='/favourite'>Favourites</Link> }
         </div>
 
         <div className='flex items-center gap-8'>
             <SearchIcon className='max-md:hidden w-6 h-6 cursor-pointer'/>
             {
-                !user ? (<button onClick={openSignIn} className='px-4 py-1 sm:px-7 sm:py-2 bg-primary hover: bg-primary-dull transition rounded-full font-medium cursor-pointer'>Login</button>) : (
+                !user ? (<button onClick={openSignIn} className='px-4 py-1 sm:px-7 sm:py-2 bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer'>Login</button>) : (
                     <UserButton>
                         <UserButton.MenuItems>
                             <UserButton.Action label="My Bookings" labelIcon={<TicketPlus width={15}/>} onClick={() => navigate('/my-bookings')}/>
