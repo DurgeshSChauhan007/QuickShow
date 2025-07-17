@@ -80,6 +80,13 @@ export const createBooking = async(req, res) => {
         booking.paymentLink = session.url;
         await booking.save();
 
+        // Run Inngest Function to check payment status after 10 minutes
+        await inngest.send({
+            name: "app/checkpayment",
+            data: {
+                bookingId: booking._id.toString()
+            }
+        })
 
         res.json({ success: true, url: session.url});
 
@@ -103,5 +110,48 @@ export const getOccupiedSeats = async (req, res) => {
     } catch (error) {
         console.error(error.message);
         res.json({ success: false, message: error.message });
+    }
+}
+
+export const cancelBooking = async (req, res) => {
+    try {
+        const { bookingId } = req.params;
+
+        const booking = await Booking.findById(bookingId);
+        if (!booking) {
+            return res.status(404).json({ success: false, message: "Booking not found" });
+        }
+
+        const show = await Show.findById(booking.show);
+        if (!show) {
+            return res.status(404).json({ success: false, message: "Show not found" });
+        }
+
+        const currentTime = new Date();
+        const showTime = new Date(show.showDateTime);
+        const timeDiffInMs = showTime - currentTime;
+        const threeHoursInMs = 3 * 60 * 60 * 1000;
+
+        if (timeDiffInMs <= threeHoursInMs) {
+            return res.status(400).json({
+                success: false,
+                message: "Cancellations are only allowed at least 3 hours before showtime.",
+            });
+        }
+
+        booking.bookedSeats.forEach(seat => {
+            delete show.occupiedSeats[seat];
+        });
+
+        show.markModified('occupiedSeats');
+        await show.save();
+        
+        await booking.deleteOne();
+
+        res.json({ success: true, message: "Booking cancelled and seats released." });
+
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).json({ success: false, message: error.message });
     }
 }

@@ -6,6 +6,7 @@ import timeFormat from '../lib/timeFormat';
 import { dateFormat } from '../lib/dateFormat';
 import { useAppContext } from '../context/AppContext';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 const MyBookings = () => {
 
@@ -15,6 +16,11 @@ const MyBookings = () => {
 
   const [bookings, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelBookingId, setCancelBookingId] = useState(null);
+  const [cancelBookingDate, setCancelBookingDate] = useState(null);
+
 
   const getMyBookings = async() => {
     try {
@@ -30,6 +36,36 @@ const MyBookings = () => {
     }
     setIsLoading(false);
   }
+
+  const handleCancel = async (bookingId, showDateTime) => {
+    const showTime = new Date(showDateTime);
+    const currentTime = new Date();
+    const diffInHours = (showTime - currentTime) / (1000 * 60 * 60);
+
+    if (diffInHours < 3) {
+      toast.error("Tickets can only be cancelled up to 3 hours before showtime.");
+      return;
+    }
+
+    const confirmCancel = window.confirm("Do you really want to cancel this ticket?");
+    if (!confirmCancel) return;
+
+    try {
+      const { data } = await axios.delete(`/api/booking/cancel/${bookingId}`, {
+        headers: { Authorization: `Bearer ${await getToken()}` }
+      });
+
+      if (data.success) {
+        toast.success("Booking cancelled successfully.");
+        getMyBookings();
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong while cancelling the booking.");
+    }
+  };
+
+
 
   useEffect(() => {
     if (user) {
@@ -66,6 +102,16 @@ const MyBookings = () => {
                 <p><span className='text-gray-400'>Total tickets:</span>{item.bookedSeats.length}</p>
                 <p><span className='text-gray-400'>Seat Number:</span>{item.bookedSeats.join(", ")}</p>
               </div>
+             {new Date(item.show.showDateTime) - new Date() > 3 * 60 * 60 * 1000 ? (
+                <Link to={'/my-bookings'}
+                  onClick={() => handleCancel(item._id, item.show.showDateTime)}
+                  className="mt-2 px-4 py-1.5 bg-primary text-white rounded-full text-sm font-medium"
+                >
+                  Cancel Ticket
+                </Link>
+              ) : (
+                <p className="text-sm text-primary mt-2">Cancellation not available(less than 3 hours)</p>
+            )}
             </div>
           </div>
         ))
