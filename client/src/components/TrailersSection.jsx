@@ -3,19 +3,11 @@ import { dummyTrailers } from '../assets/assets'
 import BlurCircle from './BlurCircle';
 import ReactPlayer from 'react-player';
 import { PlayCircleIcon } from 'lucide-react';
-import { useAppContext } from '../context/AppContext';
 import toast from 'react-hot-toast';
 
 const TrailersSection = () => {
 
-    const { isAdmin, navigate } = useAppContext();
-
     const [currentTrailer, setCurrentTrailer] = useState(dummyTrailers[0]);
-
-    const handleAdmin = async () => {
-        toast.success("You are one of the Admin");
-        navigate('/admin');
-    }
 
   return (
     <div className='px-6 md:px-16 lg:px-24 xl:px-44 py-20 overflow-hidden'>
@@ -34,16 +26,6 @@ const TrailersSection = () => {
                 </div>
             ))}
         </div>
-
-        <div className="flex flex-1 justify-center items-center px-4 mt-20 ">
-            <button
-                onClick={handleAdmin}
-                className={`min-w-[100px] px-4 py-2 rounded bg-primary text-white font-semibold transition duration-300 hover:bg-primary/80`}
-            >
-                {isAdmin ? 'Admin' : ''}
-            </button>
-        </div>
-
 
     </div>
   )

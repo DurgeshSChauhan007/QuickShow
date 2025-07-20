@@ -1,7 +1,21 @@
 import React from 'react'
 import { assets } from '../assets/assets'
+import { useAppContext } from '../context/AppContext'
+import toast from 'react-hot-toast';
 
 const Footer = () => {
+
+    const { isAdmin, navigate } = useAppContext();
+
+    const handleAdmin = async () => {
+        if (isAdmin) {
+            toast.success("Confirmed — you are an admin");
+            navigate('/admin');
+        }
+        else {
+            toast.error("Access denied. You are not an admin")
+        }
+    }
   return (
      <footer className="px-6 md:px-16 lg:px-36 mt-40 w-full text-gray-300">
             <div className="flex flex-col md:flex-row justify-between w-full gap-10 border-b border-gray-500 pb-14">
@@ -23,6 +37,7 @@ const Footer = () => {
                             <li><a href="#">About us</a></li>
                             <li><a href="#">Contact us</a></li>
                             <li><a href="#">Privacy policy</a></li>
+                            <li className='cursor-pointer' onClick={handleAdmin}>Admin</li>
                         </ul>
                     </div>
                     <div>
